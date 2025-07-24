@@ -18,9 +18,13 @@ import { register } from "./controllers/auth.js";
 import { createPost } from "./controllers/posts.js";
 import { verifyToken } from "./middleware/auth.js";
 
+const ENVIRONMENT = process.env.NODE_ENV || "development";
+dotenv.config({ path: `.env.${ENVIRONMENT}` });
+
+console.log(`Running in ${ENVIRONMENT} mode`);
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-dotenv.config();
 
 const app = express();
 const server = createServer(app);
@@ -31,7 +35,6 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
-
 app.set("io", io);
 
 const userSockets = new Map();
@@ -87,7 +90,6 @@ const upload = multer({ storage });
 
 app.post("/auth/register", upload.single("picture"), register);
 app.post("/posts", verifyToken, upload.single("picture"), createPost);
-
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/posts", postRoutes);
