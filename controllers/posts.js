@@ -58,8 +58,26 @@ export const createPost = async (req, res) => {
 
 export const getFeedPosts = async (req, res) => {
   try {
-    const posts = await PostData.find().sort({ createdAt: -1 });
-    res.status(200).json(posts);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const sort = req.query.sort || "newest";
+    const skip = (page - 1) * limit;
+
+    const sortOption =
+      sort === "oldest" ? { createdAt: 1 } : { createdAt: -1 };
+
+    const totalPosts = await PostData.countDocuments();
+    const posts = await PostData.find()
+      .sort(sortOption)
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      posts,
+      totalPosts,
+      currentPage: page,
+      totalPages: Math.ceil(totalPosts / limit),
+    });
   } catch (err) {
     res.status(404).json({ message: err.message });
   }
@@ -68,8 +86,26 @@ export const getFeedPosts = async (req, res) => {
 export const getUserPosts = async (req, res) => {
   try {
     const { userId } = req.params;
-    const posts = await PostData.find({ userId }).sort({ createdAt: -1 });
-    res.status(200).json(posts);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const sort = req.query.sort || "newest";
+    const skip = (page - 1) * limit;
+
+    const sortOption =
+      sort === "oldest" ? { createdAt: 1 } : { createdAt: -1 };
+
+    const totalPosts = await PostData.countDocuments({ userId });
+    const posts = await PostData.find({ userId })
+      .sort(sortOption)
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      posts,
+      totalPosts,
+      currentPage: page,
+      totalPages: Math.ceil(totalPosts / limit),
+    });
   } catch (err) {
     res.status(404).json({ message: err.message });
   }
