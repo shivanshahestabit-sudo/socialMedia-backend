@@ -14,9 +14,11 @@ import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import postRoutes from "./routes/posts.js";
 import notificationRoutes from "./routes/notifications.js";
+import chatRoutes from "./routes/chat.js";
 import { register } from "./controllers/auth.js";
 import { createPost } from "./controllers/posts.js";
 import { verifyToken } from "./middleware/auth.js";
+import Chat from "./models/Chat.js";
 
 const ENVIRONMENT = process.env.NODE_ENV || "development";
 dotenv.config({ path: `.env.${ENVIRONMENT}` });
@@ -35,7 +37,6 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
-app.set("io", io);
 
 const userSockets = new Map();
 
@@ -46,6 +47,74 @@ io.on("connection", (socket) => {
     userSockets.set(userId, socket.id);
     socket.userId = userId;
     console.log(`User ${userId} joined with socket ${socket.id}`);
+    
+    socket.join(`user_${userId}`);
+  });
+
+  socket.on("send-message", async (data) => {
+    try {
+      const { senderId, receiverId, content } = data;
+      
+      const newMessage = new Chat({
+        senderId,
+        receiverId,
+        content,
+      });
+      
+      await newMessage.save();
+      
+      await newMessage.populate('senderId', 'firstName lastName picturePath');
+      
+      const messageData = {
+        _id: newMessage._id,
+        senderId: newMessage.senderId,
+        receiverId: newMessage.receiverId,
+        content: newMessage.content,
+        createdAt: newMessage.createdAt,
+        updatedAt: newMessage.updatedAt,
+      };
+      
+      const receiverSocketId = userSockets.get(receiverId);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("receive-message", {
+          ...messageData,
+          isSender: false,
+        });
+      }
+      
+      socket.emit("message-sent", {
+        ...messageData,
+        isSender: true,
+      });
+      
+      const notificationData = {
+        type: "message",
+        senderId: senderId,
+        senderName: `${newMessage.senderId.firstName} ${newMessage.senderId.lastName}`,
+        message: content.length > 50 ? content.substring(0, 50) + "..." : content,
+        timestamp: new Date(),
+      };
+      
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("receive-notification", notificationData);
+      }
+      
+      console.log(`Message sent from ${senderId} to ${receiverId}`);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      socket.emit("message-error", { error: "Failed to send message" });
+    }
+  });
+
+  socket.on("typing", (data) => {
+    const { receiverId, isTyping } = data;
+    const receiverSocketId = userSockets.get(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("user-typing", {
+        senderId: socket.userId,
+        isTyping,
+      });
+    }
   });
 
   socket.on("send-notification", ({ receiverId, notification }) => {
@@ -94,6 +163,7 @@ app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/posts", postRoutes);
 app.use("/notifications", notificationRoutes);
+app.use("/chat", chatRoutes);
 
 const PORT = process.env.PORT || 6001;
 

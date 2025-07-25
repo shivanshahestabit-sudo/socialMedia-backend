@@ -63,8 +63,7 @@ export const getFeedPosts = async (req, res) => {
     const sort = req.query.sort || "newest";
     const skip = (page - 1) * limit;
 
-    const sortOption =
-      sort === "oldest" ? { createdAt: 1 } : { createdAt: -1 };
+    const sortOption = sort === "oldest" ? { createdAt: 1 } : { createdAt: -1 };
 
     const totalPosts = await PostData.countDocuments();
     const posts = await PostData.find()
@@ -91,8 +90,7 @@ export const getUserPosts = async (req, res) => {
     const sort = req.query.sort || "newest";
     const skip = (page - 1) * limit;
 
-    const sortOption =
-      sort === "oldest" ? { createdAt: 1 } : { createdAt: -1 };
+    const sortOption = sort === "oldest" ? { createdAt: 1 } : { createdAt: -1 };
 
     const totalPosts = await PostData.countDocuments({ userId });
     const posts = await PostData.find({ userId })
@@ -241,6 +239,34 @@ export const deletePost = async (req, res) => {
     await Notification.deleteMany({ postId: id });
 
     res.status(200).json({ message: "Post deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const editPost = async (req, res) => {
+  try {
+    const { userId, postId } = req.params;
+    const { description, picturePath } = req.body;
+
+    const post = await PostData.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    if (post.userId !== userId) {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to edit this post" });
+    }
+
+    if (description !== undefined) post.description = description;
+    if (picturePath !== undefined) post.picturePath = picturePath;
+
+    await post.save();
+
+    res.status(200).json({ message: "Post updated successfully", post });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
