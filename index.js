@@ -47,24 +47,24 @@ io.on("connection", (socket) => {
     userSockets.set(userId, socket.id);
     socket.userId = userId;
     console.log(`User ${userId} joined with socket ${socket.id}`);
-    
+
     socket.join(`user_${userId}`);
   });
 
   socket.on("send-message", async (data) => {
     try {
       const { senderId, receiverId, content } = data;
-      
+
       const newMessage = new Chat({
         senderId,
         receiverId,
         content,
       });
-      
+
       await newMessage.save();
-      
-      await newMessage.populate('senderId', 'firstName lastName picturePath');
-      
+
+      await newMessage.populate("senderId", "firstName lastName picturePath");
+
       const messageData = {
         _id: newMessage._id,
         senderId: newMessage.senderId,
@@ -73,7 +73,7 @@ io.on("connection", (socket) => {
         createdAt: newMessage.createdAt,
         updatedAt: newMessage.updatedAt,
       };
-      
+
       const receiverSocketId = userSockets.get(receiverId);
       if (receiverSocketId) {
         io.to(receiverSocketId).emit("receive-message", {
@@ -81,24 +81,25 @@ io.on("connection", (socket) => {
           isSender: false,
         });
       }
-      
+
       socket.emit("message-sent", {
         ...messageData,
         isSender: true,
       });
-      
+
       const notificationData = {
         type: "message",
         senderId: senderId,
         senderName: `${newMessage.senderId.firstName} ${newMessage.senderId.lastName}`,
-        message: content.length > 50 ? content.substring(0, 50) + "..." : content,
+        message:
+          content.length > 50 ? content.substring(0, 50) + "..." : content,
         timestamp: new Date(),
       };
-      
+
       if (receiverSocketId) {
         io.to(receiverSocketId).emit("receive-notification", notificationData);
       }
-      
+
       console.log(`Message sent from ${senderId} to ${receiverId}`);
     } catch (error) {
       console.error("Error sending message:", error);
@@ -144,7 +145,17 @@ app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(morgan("common"));
 app.use(bodyParser.json({ limit: "30mb", extended: true }));
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
-app.use(cors());
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? ["https://yourdomain.com"]
+        : ["http://localhost:3000"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use("/assets", express.static(path.join(__dirname, "public/assets")));
 
 const storage = multer.diskStorage({

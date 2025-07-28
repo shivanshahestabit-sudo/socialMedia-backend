@@ -22,7 +22,9 @@ const UserSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: function() {
+        return this.provider === 'local';
+      },
       min: 5,
     },
     picturePath: {
@@ -35,9 +37,35 @@ const UserSchema = new mongoose.Schema(
     },
     location: String,
     occupation: String,
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true
+    },
+    provider: {
+      type: String,
+      enum: ['local', 'google'],
+      default: 'local'
+    },
+    accessToken: {
+      type: String
+    },
+    refreshToken: {
+      type: String
+    },
+    tokenExpiry: {
+      type: Date
+    },
+    emailVerified: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true }
 );
+
+UserSchema.index({ googleId: 1 });
+UserSchema.index({ email: 1, provider: 1 });
 
 const User = mongoose.model("User", UserSchema);
 export default User;
