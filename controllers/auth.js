@@ -73,9 +73,8 @@ export const login = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ msg: "Invalid email or password." });
     }
-
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
+      expiresIn: "1m",
     });
 
     const userResponse = { ...user._doc };
@@ -96,16 +95,20 @@ export const login = async (req, res) => {
   }
 };
 
-
 export const googleLogin = async (req, res) => {
   try {
-    const { googleId, email, firstName, lastName, picturePath, emailVerified, accessToken } = req.googleUser;
+    const {
+      googleId,
+      email,
+      firstName,
+      lastName,
+      picturePath,
+      emailVerified,
+      accessToken,
+    } = req.googleUser;
 
-    let user = await User.findOne({ 
-      $or: [
-        { googleId },
-        { email, provider: 'google' }
-      ] 
+    let user = await User.findOne({
+      $or: [{ googleId }, { email, provider: "google" }],
     });
 
     if (user) {
@@ -115,12 +118,12 @@ export const googleLogin = async (req, res) => {
       user.emailVerified = emailVerified;
       await user.save();
     } else {
-      const existingUser = await User.findOne({ email, provider: 'local' });
-      
+      const existingUser = await User.findOne({ email, provider: "local" });
+
       if (existingUser) {
         return res.status(409).json({
           success: false,
-          msg: "An account with this email already exists. Please sign in with your password or reset it."
+          msg: "An account with this email already exists. Please sign in with your password or reset it.",
         });
       }
 
@@ -132,22 +135,19 @@ export const googleLogin = async (req, res) => {
         picturePath,
         accessToken,
         tokenExpiry: new Date(Date.now() + 3600000),
-        provider: 'google',
+        provider: "google",
         emailVerified,
         friends: [],
-        location: '',
-        occupation: ''
+        location: "",
+        occupation: "",
       });
       await user.save();
     }
 
     const token = jwt.sign(
-      { 
-        id: user._id,
-        provider: 'google'
-      },
+      { id: user._id, provider: "google" },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: "4h" }
     );
 
     const userResponse = { ...user._doc };
@@ -157,16 +157,15 @@ export const googleLogin = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      msg: user.isNew ? 'User registered successfully' : 'Login successful',
+      msg: user.isNew ? "User registered successfully" : "Login successful",
       token,
-      user: userResponse
+      user: userResponse,
     });
-
   } catch (error) {
-    console.error('Google auth error:', error);
-    res.status(500).json({ 
-      success: false, 
-      msg: 'Internal server error during authentication' 
+    console.error("Google auth error:", error);
+    res.status(500).json({
+      success: false,
+      msg: "Internal server error during authentication",
     });
   }
 };
