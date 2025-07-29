@@ -74,7 +74,7 @@ export const login = async (req, res) => {
       return res.status(401).json({ msg: "Invalid email or password." });
     }
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1m",
+      expiresIn: "7d",
     });
 
     const userResponse = { ...user._doc };
@@ -147,7 +147,7 @@ export const googleLogin = async (req, res) => {
     const token = jwt.sign(
       { id: user._id, provider: "google" },
       process.env.JWT_SECRET,
-      { expiresIn: "4h" }
+      { expiresIn: "7d" }
     );
 
     const userResponse = { ...user._doc };

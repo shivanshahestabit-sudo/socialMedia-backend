@@ -7,8 +7,5 @@ const router = express.Router();
 
 router.post("/login", login);
 router.post("/social-login", verifyGoogleToken, googleLogin);
-// router.get("/me", verifyToken, getCurrentUser);
-// router.post("/logout", verifyToken, logout);
-
 
 export default router;

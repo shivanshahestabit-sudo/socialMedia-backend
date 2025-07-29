@@ -22,8 +22,8 @@ const UserSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: function() {
-        return this.provider === 'local';
+      required: function () {
+        return this.provider === "local";
       },
       min: 5,
     },
@@ -40,25 +40,30 @@ const UserSchema = new mongoose.Schema(
     googleId: {
       type: String,
       unique: true,
-      sparse: true
+      sparse: true,
     },
     provider: {
       type: String,
-      enum: ['local', 'google'],
-      default: 'local'
+      enum: ["local", "google"],
+      default: "local",
     },
     accessToken: {
-      type: String
+      type: String,
     },
     refreshToken: {
-      type: String
+      type: String,
     },
     tokenExpiry: {
-      type: Date
+      type: Date,
     },
     emailVerified: {
       type: Boolean,
-      default: false
+      default: false,
+    },
+    role:{
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
     }
   },
   { timestamps: true }

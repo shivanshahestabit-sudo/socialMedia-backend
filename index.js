@@ -13,6 +13,7 @@ import { createServer } from "http";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import postRoutes from "./routes/posts.js";
+import adminRoutes from "./routes/admin.js";
 import notificationRoutes from "./routes/notifications.js";
 import chatRoutes from "./routes/chat.js";
 import { register } from "./controllers/auth.js";
@@ -175,6 +176,7 @@ app.use("/users", userRoutes);
 app.use("/posts", postRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/chat", chatRoutes);
+app.use("/admin", adminRoutes);
 
 const PORT = process.env.PORT || 6001;
 
