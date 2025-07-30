@@ -1,6 +1,14 @@
-import express from "express";
-import { getFeedPosts, getUserPosts, likePost, addComment, deletePost, editPost } from "../controllers/posts.js";
-import { verifyToken } from "../middleware/auth.js";
+const express = require("express");
+const {
+  getFeedPosts,
+  getUserPosts,
+  likePost,
+  addComment,
+  deletePost,
+  editPost,
+} = require("../controllers/posts.js");
+const { verifyToken } = require("../middleware/auth.js");
+
 
 const router = express.Router();
 
@@ -11,4 +19,4 @@ router.post("/:id/comment", verifyToken, addComment);
 router.delete("/:id", verifyToken, deletePost);
 router.put("/:postId/:userId", editPost);
 
-export default router;
+module.exports = router;

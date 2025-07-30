@@ -2,7 +2,6 @@
   "name": "server",
   "version": "1.0.0",
   "main": "index.js",
-  "type": "module",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
@@ -20,10 +19,16 @@
     "socket.io": "^4.8.1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon index.js",
     "start:dev": "NODE_ENV=development nodemon index.js",
-    "start:prod": "NODE_ENV=production node index.js"
+    "start:prod": "NODE_ENV=production node index.js",
+    "test": "cross-env NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest --config jest.config.mjs",
+    "test:watch": "cross-env NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest --watch --config jest.config.mjs",
+    "test:coverage": "cross-env NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest --coverage --config jest.config.mjs",
+    "test:unit": "cross-env NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest tests/unit --config jest.config.mjs",
+    "test:integration": "cross-env NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest tests/integration --config jest.config.mjs",
+    "test:verbose": "cross-env NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest --verbose --config jest.config.mjs",
+    "test:debug": "cross-env NODE_ENV=test node --inspect-brk --experimental-vm-modules node_modules/.bin/jest --runInBand --config jest.config.mjs"
   },
   "keywords": [],
   "author": "",
@@ -32,5 +37,16 @@
   "optionalDependencies": {
     "bufferutil": "^4.0.9",
     "utf-8-validate": "^6.0.5"
+  },
+  "devDependencies": {
+    "@shelf/jest-mongodb": "^5.2.2",
+    "cross-env": "^10.0.0",
+    "jest": "^30.0.5",
+    "jest-environment-node": "^30.0.5",
+    "jest-html-reporter": "^4.3.0",
+    "jest-junit": "^16.0.0",
+    "mongodb-memory-server": "^10.1.4",
+    "nodemon": "^3.1.10",
+    "supertest": "^7.1.4"
   }
 }

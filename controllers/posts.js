@@ -1,8 +1,8 @@
-import PostData from "../models/Post.js";
-import User from "../models/User.js";
-import Notification from "../models/Notification.js";
+const PostData = require("../models/Post.js");
+const User = require("../models/User.js");
+const Notification = require("../models/Notification.js");
 
-export const createPost = async (req, res) => {
+const createPost = async (req, res) => {
   try {
     const { userId, description, picturePath } = req.body;
     const user = await User.findById(userId);
@@ -56,7 +56,7 @@ export const createPost = async (req, res) => {
   }
 };
 
-export const getFeedPosts = async (req, res) => {
+const getFeedPosts = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -82,7 +82,7 @@ export const getFeedPosts = async (req, res) => {
   }
 };
 
-export const getUserPosts = async (req, res) => {
+const getUserPosts = async (req, res) => {
   try {
     const { userId } = req.params;
     const page = parseInt(req.query.page) || 1;
@@ -109,7 +109,7 @@ export const getUserPosts = async (req, res) => {
   }
 };
 
-export const likePost = async (req, res) => {
+const likePost = async (req, res) => {
   try {
     const { id } = req.params;
     const { userId } = req.body;
@@ -163,7 +163,7 @@ export const likePost = async (req, res) => {
   }
 };
 
-export const addComment = async (req, res) => {
+const addComment = async (req, res) => {
   try {
     const { id } = req.params;
     const { userId, comment } = req.body;
@@ -217,7 +217,7 @@ export const addComment = async (req, res) => {
   }
 };
 
-export const deletePost = async (req, res) => {
+const deletePost = async (req, res) => {
   try {
     const { id } = req.params;
     const { userId } = req.body;
@@ -244,7 +244,7 @@ export const deletePost = async (req, res) => {
   }
 };
 
-export const editPost = async (req, res) => {
+const editPost = async (req, res) => {
   try {
     const { userId, postId } = req.params;
     const { description, picturePath } = req.body;
@@ -270,4 +270,14 @@ export const editPost = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+};
+
+module.exports = {
+  createPost,
+  getFeedPosts,
+  getUserPosts,
+  likePost,
+  addComment,
+  deletePost,
+  editPost,
 };

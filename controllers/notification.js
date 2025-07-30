@@ -1,6 +1,6 @@
-import Notification from "../models/Notification.js";
+const Notification = require("../models/Notification.js");
 
-export const getUserNotifications = async (req, res) => {
+const getUserNotifications = async (req, res) => {
   try {
     const { userId } = req.params;
     const notifications = await Notification.find({ userId })
@@ -12,7 +12,7 @@ export const getUserNotifications = async (req, res) => {
   }
 };
 
-export const markNotificationAsRead = async (req, res) => {
+const markNotificationAsRead = async (req, res) => {
   try {
     const { id } = req.params;
     await Notification.findByIdAndUpdate(id, { read: true });
@@ -22,7 +22,7 @@ export const markNotificationAsRead = async (req, res) => {
   }
 };
 
-export const markAllNotificationsAsRead = async (req, res) => {
+const markAllNotificationsAsRead = async (req, res) => {
   try {
     const { userId } = req.params;
     await Notification.updateMany({ userId, read: false }, { read: true });
@@ -30,4 +30,10 @@ export const markAllNotificationsAsRead = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+};
+
+module.exports = {
+  getUserNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
 };

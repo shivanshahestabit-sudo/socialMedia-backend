@@ -1,7 +1,8 @@
-import Chat from "../models/Chat.js";
-import User from "../models/User.js";
+const Chat = require("../models/Chat.js");
+const User = require("../models/User.js");  
 
-export const getChatUsers = async (req, res) => {
+
+const getChatUsers = async (req, res) => {
   try {
     const userId = req.user.id;
 
@@ -50,7 +51,7 @@ export const getChatUsers = async (req, res) => {
   }
 };
 
-export const getMessages = async (req, res) => {
+const getMessages = async (req, res) => {
   try {
     const senderId = req.user.id;
     const receiverId = req.params.userId;
@@ -81,7 +82,7 @@ export const getMessages = async (req, res) => {
   }
 };
 
-export const sendMessage = async (req, res) => {
+const sendMessage = async (req, res) => {
   try {
     const senderId = req.user.id;
     const { receiverId, content } = req.body;
@@ -134,7 +135,7 @@ export const sendMessage = async (req, res) => {
   }
 };
 
-export const getAllUsers = async (req, res) => {
+const getAllUsers = async (req, res) => {
   try {
     const currentUserId = req.user.id;
     const users = await User.find({ 
@@ -146,3 +147,11 @@ export const getAllUsers = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+module.exports = {
+  getChatUsers,
+  getMessages,
+  sendMessage,
+  getAllUsers,
+};
+

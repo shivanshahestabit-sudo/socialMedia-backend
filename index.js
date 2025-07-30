@@ -1,35 +1,13 @@
-import express from "express";
-import bodyParser from "body-parser";
-import mongoose from "mongoose";
-import cors from "cors";
-import dotenv from "dotenv";
-import multer from "multer";
-import helmet from "helmet";
-import morgan from "morgan";
-import path from "path";
-import { fileURLToPath } from "url";
-import { Server } from "socket.io";
-import { createServer } from "http";
-import authRoutes from "./routes/auth.js";
-import userRoutes from "./routes/users.js";
-import postRoutes from "./routes/posts.js";
-import adminRoutes from "./routes/admin.js";
-import notificationRoutes from "./routes/notifications.js";
-import chatRoutes from "./routes/chat.js";
-import { register } from "./controllers/auth.js";
-import { createPost } from "./controllers/posts.js";
-import { verifyToken } from "./middleware/auth.js";
-import Chat from "./models/Chat.js";
+const mongoose = require("mongoose");
+const { Server } = require("socket.io");
+const { createServer } = require("http");
+const dotenv = require("dotenv");
+const app = require("./app.js");
+const Chat = require("./models/Chat.js");
 
-const ENVIRONMENT = process.env.NODE_ENV || "development";
-dotenv.config({ path: `.env.${ENVIRONMENT}` });
+dotenv.config();
 
-console.log(`Running in ${ENVIRONMENT} mode`);
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const app = express();
+const PORT = process.env.PORT || 5001;
 const server = createServer(app);
 
 const io = new Server(server, {
@@ -47,23 +25,14 @@ io.on("connection", (socket) => {
   socket.on("join", (userId) => {
     userSockets.set(userId, socket.id);
     socket.userId = userId;
-    console.log(`User ${userId} joined with socket ${socket.id}`);
-
     socket.join(`user_${userId}`);
+    console.log(`User ${userId} joined with socket ${socket.id}`);
   });
 
-  socket.on("send-message", async (data) => {
+  socket.on("send-message", async ({ senderId, receiverId, content }) => {
     try {
-      const { senderId, receiverId, content } = data;
-
-      const newMessage = new Chat({
-        senderId,
-        receiverId,
-        content,
-      });
-
+      const newMessage = new Chat({ senderId, receiverId, content });
       await newMessage.save();
-
       await newMessage.populate("senderId", "firstName lastName picturePath");
 
       const messageData = {
@@ -90,10 +59,9 @@ io.on("connection", (socket) => {
 
       const notificationData = {
         type: "message",
-        senderId: senderId,
+        senderId,
         senderName: `${newMessage.senderId.firstName} ${newMessage.senderId.lastName}`,
-        message:
-          content.length > 50 ? content.substring(0, 50) + "..." : content,
+        message: content.length > 50 ? content.slice(0, 50) + "..." : content,
         timestamp: new Date(),
       };
 
@@ -108,8 +76,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("typing", (data) => {
-    const { receiverId, isTyping } = data;
+  socket.on("typing", ({ receiverId, isTyping }) => {
     const receiverSocketId = userSockets.get(receiverId);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("user-typing", {
@@ -123,9 +90,6 @@ io.on("connection", (socket) => {
     const receiverSocketId = userSockets.get(receiverId);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("receive-notification", notification);
-      console.log(`Notification sent to ${receiverId}`);
-    } else {
-      console.log(`User ${receiverId} not connected`);
     }
   });
 
@@ -140,52 +104,17 @@ io.on("connection", (socket) => {
 global.userSockets = userSockets;
 global.io = io;
 
-app.use(express.json());
-app.use(helmet());
-app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
-app.use(morgan("common"));
-app.use(bodyParser.json({ limit: "30mb", extended: true }));
-app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
-app.use(
-  cors({
-    origin:
-      process.env.NODE_ENV === "production"
-        ? ["https://yourdomain.com"]
-        : ["http://localhost:3000"],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
-app.use("/assets", express.static(path.join(__dirname, "public/assets")));
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "public/assets");
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname);
-  },
-});
-const upload = multer({ storage });
-
-app.post("/auth/register", upload.single("picture"), register);
-app.post("/posts", verifyToken, upload.single("picture"), createPost);
-app.use("/auth", authRoutes);
-app.use("/users", userRoutes);
-app.use("/posts", postRoutes);
-app.use("/notifications", notificationRoutes);
-app.use("/chat", chatRoutes);
-app.use("/admin", adminRoutes);
-
-const PORT = process.env.PORT || 6001;
-
 mongoose
   .connect(process.env.MONGO_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
   .then(() => {
-    server.listen(PORT, () => console.log(`Server Port: ${PORT}`));
+    server.listen(PORT, () =>
+      console.log(`Server running on port ${PORT}`)
+    );
   })
-  .catch((error) => console.log(`${error} did not connect`));
+  .catch((error) => {
+    console.error("MongoDB connection error:", error);
+    process.exit(1);
+  });

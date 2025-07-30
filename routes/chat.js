@@ -1,6 +1,6 @@
-import express from "express";
-import { getChatUsers, getMessages, sendMessage, getAllUsers } from "../controllers/chat.js";
-import { verifyToken } from "../middleware/auth.js";
+const express = require("express");
+const { getChatUsers, getMessages, sendMessage, getAllUsers } = require("../controllers/chat.js");
+const { verifyToken } = require("../middleware/auth.js");
 
 const router = express.Router();
 
@@ -9,4 +9,4 @@ router.get("/all-users", verifyToken, getAllUsers);
 router.get("/messages/:userId", verifyToken, getMessages);
 router.post("/send", verifyToken, sendMessage);
 
-export default router;
+module.exports = router;

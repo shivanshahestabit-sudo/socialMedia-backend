@@ -1,0 +1,27 @@
+[
+  {
+    "userId": "64f0c96ebf8e4b001f4fd1a1",
+    "firstName": "John",
+    "lastName": "Doe",
+    "location": "New York",
+    "description": "Enjoying the sunny day in Central Park!",
+    "picturePath": "post1.jpg",
+    "userPicturePath": "john.jpg",
+    "likes": {
+      "64f0c96ebf8e4b001f4fd1a2": true,
+      "64f0c96ebf8e4b001f4fd1a3": true
+    },
+    "comments": ["Nice post!", "Looks fun!"]
+  },
+  {
+    "userId": "64f0c96ebf8e4b001f4fd1a2",
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "location": "San Francisco",
+    "description": "Started a new project today!",
+    "picturePath": "post2.jpg",
+    "userPicturePath": "jane.jpg",
+    "likes": {},
+    "comments": []
+  }
+]

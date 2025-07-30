@@ -1,6 +1,6 @@
-import User from "../models/User.js";
+const User = require("../models/User.js");
 
-export const getAllUsers = async (req, res) => {
+const getAllUsers = async (req, res) => {
   try {
     const requestingUserId = req.user.id;
     const requestingUser = await User.findById(requestingUserId);
@@ -56,3 +56,5 @@ export const getAllUsers = async (req, res) => {
     });
   }
 };
+
+module.exports = { getAllUsers };

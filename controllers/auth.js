@@ -1,8 +1,8 @@
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User.js");
 
-export const register = async (req, res) => {
+const register = async (req, res) => {
   try {
     const {
       firstName,
@@ -56,7 +56,7 @@ export const register = async (req, res) => {
   }
 };
 
-export const login = async (req, res) => {
+const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -95,7 +95,7 @@ export const login = async (req, res) => {
   }
 };
 
-export const googleLogin = async (req, res) => {
+const googleLogin = async (req, res) => {
   try {
     const {
       googleId,
@@ -168,4 +168,10 @@ export const googleLogin = async (req, res) => {
       msg: "Internal server error during authentication",
     });
   }
+};
+
+module.exports = {
+  register,
+  login,
+  googleLogin,
 };

@@ -1,0 +1,28 @@
+[
+  {
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john@example.com",
+    "password": "password123",
+    "picturePath": "default.jpg",
+    "friends": [],
+    "location": "New York",
+    "occupation": "Engineer",
+    "provider": "local",
+    "emailVerified": true,
+    "role": "user"
+  },
+  {
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "email": "jane@example.com",
+    "password": "admin123",
+    "picturePath": "admin.jpg",
+    "friends": [],
+    "location": "San Francisco",
+    "occupation": "Admin",
+    "provider": "local",
+    "emailVerified": true,
+    "role": "admin"
+  }
+]
