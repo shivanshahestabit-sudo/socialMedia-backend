@@ -13,6 +13,7 @@ const register = async (req, res) => {
       friends,
       location,
       occupation,
+      role,
     } = req.body;
 
     if (!firstName || !lastName || !email || !password) {
@@ -38,6 +39,7 @@ const register = async (req, res) => {
       friends,
       location,
       occupation,
+      role: role || "user",
     });
 
     const savedUser = await newUser.save();

@@ -11,7 +11,7 @@ const getAllUsers = async (req, res) => {
         message: "User not found",
       });
     }
-
+    console.log("Requesting User:", requestingUser);
     if (requestingUser.role !== "admin") {
       return res.status(403).json({
         success: false,
