@@ -5,9 +5,10 @@ const verifyToken = async (req, res, next) => {
     let token = req.header("Authorization");
 
     if (!token) {
-      return res
-        .status(401)
-        .json({ error: "Access Denied: No token provided" });
+      return res.status(401).json({
+        success: false,
+        message: "Access Denied: No token provided",
+      });
     }
 
     if (token.startsWith("Bearer ")) {
@@ -19,11 +20,20 @@ const verifyToken = async (req, res, next) => {
     next();
   } catch (err) {
     if (err.name === "TokenExpiredError") {
-      return res.status(401).json({ error: "JWT expired" });
+      return res.status(401).json({
+        success: false,
+        message: "JWT expired",
+      });
     } else if (err.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token" });
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token",
+      });
     } else {
-      return res.status(500).json({ error: "Internal Server Error" });
+      return res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+      });
     }
   }
 };

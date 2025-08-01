@@ -6,6 +6,8 @@ const createPost = async (req, res) => {
   try {
     const { userId, description, picturePath } = req.body;
     const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
     const newPost = new PostData({
       userId,
       firstName: user.firstName,
@@ -21,8 +23,8 @@ const createPost = async (req, res) => {
 
     const allUsers = await User.find({ _id: { $ne: userId } });
 
-    const notifications = allUsers.map((user) => ({
-      userId: user._id,
+    const notifications = allUsers.map((u) => ({
+      userId: u._id,
       type: "new_post",
       message: `${newPost.firstName} ${newPost.lastName} created a new post`,
       fromUser: userId,
@@ -35,8 +37,8 @@ const createPost = async (req, res) => {
     const io = global.io;
     const userSockets = global.userSockets;
 
-    allUsers.forEach((user) => {
-      const socketId = userSockets.get(user._id.toString());
+    allUsers.forEach((u) => {
+      const socketId = userSockets.get(u._id.toString());
       if (socketId) {
         io.to(socketId).emit("new_notification", {
           type: "new_post",
@@ -113,7 +115,13 @@ const likePost = async (req, res) => {
   try {
     const { id } = req.params;
     const { userId } = req.body;
+
     const post = await PostData.findById(id);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
     const isLiked = post.likes.get(userId);
 
     if (isLiked) {
@@ -122,7 +130,6 @@ const likePost = async (req, res) => {
       post.likes.set(userId, true);
 
       if (post.userId !== userId) {
-        const user = await User.findById(userId);
         const notification = new Notification({
           userId: post.userId,
           type: "post_like",
@@ -169,7 +176,10 @@ const addComment = async (req, res) => {
     const { userId, comment } = req.body;
 
     const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
     const post = await PostData.findById(id);
+    if (!post) return res.status(404).json({ message: "Post not found" });
 
     const newComment = {
       userId,

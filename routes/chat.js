@@ -1,12 +1,17 @@
-const express = require("express");
-const { getChatUsers, getMessages, sendMessage, getAllUsers } = require("../controllers/chat.js");
-const { verifyToken } = require("../middleware/auth.js");
+// const express = require("express");
+// const { verifyToken: protectRoute } = require("../middleware/auth.js");
 
-const router = express.Router();
+// const {
+//   getUsersForSidebar,
+//   getMessages,
+//   sendMessage,
+// } = require("../controllers/chat.js");
 
-router.get("/users", verifyToken, getChatUsers);
-router.get("/all-users", verifyToken, getAllUsers);
-router.get("/messages/:userId", verifyToken, getMessages);
-router.post("/send", verifyToken, sendMessage);
+// const router = express.Router();
 
-module.exports = router;
+// router.get("/users", protectRoute, getUsersForSidebar);
+// router.get("/:id", protectRoute, getMessages);
+
+// router.post("/send/:id", protectRoute, sendMessage);
+
+// module.exports = router;

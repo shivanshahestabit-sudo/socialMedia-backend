@@ -1,157 +1,77 @@
-const Chat = require("../models/Chat.js");
-const User = require("../models/User.js");  
+// const User = require("../models/User.js");
+// const Message = require("../models/Chat.js");
 
+// const cloudinary = require("../middleware/cloudinary.js");
+// const { getReceiverSocketId } = require("../middleware/socket.js");
 
-const getChatUsers = async (req, res) => {
-  try {
-    const userId = req.user.id;
+// const getUsersForSidebar = async (req, res) => {
+//   try {
+//     const loggedInUserId = req.user._id;
+//     const filteredUsers = await User.find({
+//       _id: { $ne: loggedInUserId },
+//     }).select("-password");
 
-    const chats = await Chat.find({
-      $or: [{ senderId: userId }, { receiverId: userId }],
-    }).sort({ createdAt: -1 });
+//     res.status(200).json(filteredUsers);
+//   } catch (error) {
+//     console.error("Error in getUsersForSidebar: ", error.message);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
 
-    const userIds = new Set();
-    const lastMessages = new Map();
+// const getMessages = async (req, res) => {
+//   try {
+//     const { id: userToChatId } = req.params;
+//     const myId = req.user._id;
 
-    chats.forEach((chat) => {
-      const otherUserId = chat.senderId.toString() === userId 
-        ? chat.receiverId.toString() 
-        : chat.senderId.toString();
-      
-      if (!lastMessages.has(otherUserId)) {
-        lastMessages.set(otherUserId, {
-          content: chat.content,
-          timestamp: chat.createdAt,
-          isSender: chat.senderId.toString() === userId
-        });
-      }
-      
-      userIds.add(otherUserId);
-    });
+//     const messages = await Message.find({
+//       $or: [
+//         { senderId: myId, receiverId: userToChatId },
+//         { senderId: userToChatId, receiverId: myId },
+//       ],
+//     });
 
-    const users = await User.find({ _id: { $in: Array.from(userIds) } }).select(
-      "_id firstName lastName picturePath"
-    );
+//     res.status(200).json(messages);
+//   } catch (error) {
+//     console.log("Error in getMessages controller: ", error.message);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
 
-    const usersWithLastMessage = users.map(user => ({
-      ...user._doc,
-      lastMessage: lastMessages.get(user._id.toString()) || null
-    }));
+// const sendMessage = async (req, res) => {
+//   try {
+//     const { text, image } = req.body;
+//     const { id: receiverId } = req.params;
+//     const senderId = req.user._id;
 
-    usersWithLastMessage.sort((a, b) => {
-      if (!a.lastMessage && !b.lastMessage) return 0;
-      if (!a.lastMessage) return 1;
-      if (!b.lastMessage) return -1;
-      return new Date(b.lastMessage.timestamp) - new Date(a.lastMessage.timestamp);
-    });
+//     let imageUrl;
+//     if (image) {
+//       const uploadResponse = await cloudinary.uploader.upload(image);
+//       imageUrl = uploadResponse.secure_url;
+//     }
 
-    res.status(200).json(usersWithLastMessage);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+//     const newMessage = new Message({
+//       senderId,
+//       receiverId,
+//       text,
+//       image: imageUrl,
+//     });
 
-const getMessages = async (req, res) => {
-  try {
-    const senderId = req.user.id;
-    const receiverId = req.params.userId;
+//     await newMessage.save();
 
-    const messages = await Chat.find({
-      $or: [
-        { senderId, receiverId },
-        { senderId: receiverId, receiverId: senderId },
-      ],
-    })
-    .populate('senderId', 'firstName lastName picturePath')
-    .populate('receiverId', 'firstName lastName picturePath')
-    .sort({ createdAt: 1 });
+//     const receiverSocketId = getReceiverSocketId(receiverId);
+//     if (receiverSocketId) {
+//       io.to(receiverSocketId).emit("newMessage", newMessage);
+//     }
 
-    const formattedMessages = messages.map((msg) => ({
-      _id: msg._id,
-      senderId: msg.senderId,
-      receiverId: msg.receiverId,
-      content: msg.content,
-      createdAt: msg.createdAt,
-      updatedAt: msg.updatedAt,
-      isSender: msg.senderId._id.toString() === senderId,
-    }));
+//     res.status(201).json(newMessage);
+//   } catch (error) {
+//     console.log("Error in sendMessage controller: ", error.message);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
 
-    res.status(200).json(formattedMessages);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-const sendMessage = async (req, res) => {
-  try {
-    const senderId = req.user.id;
-    const { receiverId, content } = req.body;
-
-    const newMessage = new Chat({
-      senderId,
-      receiverId,
-      content,
-    });
-
-    await newMessage.save();
-    await newMessage.populate('senderId', 'firstName lastName picturePath');
-    await newMessage.populate('receiverId', 'firstName lastName picturePath');
-
-    const io = req.app.get('io');
-    const userSockets = global.userSockets;
-    
-    const receiverSocketId = userSockets.get(receiverId);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("receive-message", {
-        _id: newMessage._id,
-        senderId: newMessage.senderId,
-        receiverId: newMessage.receiverId,
-        content: newMessage.content,
-        createdAt: newMessage.createdAt,
-        updatedAt: newMessage.updatedAt,
-        isSender: false,
-      });
-      
-      io.to(receiverSocketId).emit("receive-notification", {
-        type: "message",
-        senderId: senderId,
-        senderName: `${newMessage.senderId.firstName} ${newMessage.senderId.lastName}`,
-        message: content.length > 50 ? content.substring(0, 50) + "..." : content,
-        timestamp: new Date(),
-      });
-    }
-
-    res.status(201).json({
-      _id: newMessage._id,
-      senderId: newMessage.senderId,
-      receiverId: newMessage.receiverId,
-      content: newMessage.content,
-      createdAt: newMessage.createdAt,
-      updatedAt: newMessage.updatedAt,
-      isSender: true,
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-const getAllUsers = async (req, res) => {
-  try {
-    const currentUserId = req.user.id;
-    const users = await User.find({ 
-      _id: { $ne: currentUserId } 
-    }).select("_id firstName lastName picturePath");
-    
-    res.status(200).json(users);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-module.exports = {
-  getChatUsers,
-  getMessages,
-  sendMessage,
-  getAllUsers,
-};
-
+// module.exports = {
+//   getUsersForSidebar,
+//   getMessages,
+//   sendMessage,
+// };
