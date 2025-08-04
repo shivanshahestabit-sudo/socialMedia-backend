@@ -31,6 +31,7 @@ app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
 
 const allowedOrigins = [
   "http://localhost:3000",
+  "http://localhost:3001",
   "https://productiondomain.com",
 ];
 
@@ -69,7 +70,7 @@ app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/posts", postRoutes);
 app.use("/notifications", notificationRoutes);
-// app.use("/chat", chatRoutes);
+app.use("/chat", chatRoutes);
 app.use("/admin", adminRoutes);
 
 app.use("*", (req, res) => {
