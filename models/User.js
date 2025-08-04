@@ -44,7 +44,7 @@ const UserSchema = new mongoose.Schema(
     },
     provider: {
       type: String,
-      enum: ["local", "google"],
+      enum: ["local", "google", "facebook"],
       default: "local",
     },
     accessToken: {

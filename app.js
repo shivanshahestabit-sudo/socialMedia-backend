@@ -13,6 +13,7 @@ const postRoutes = require("./routes/posts.js");
 const adminRoutes = require("./routes/admin.js");
 const notificationRoutes = require("./routes/notifications.js");
 const chatRoutes = require("./routes/chat.js");
+const facebookDataDeletionRoutes = require("./routes/facebookDataDeletion.js");
 
 const { register } = require("./controllers/auth.js");
 const { createPost } = require("./controllers/posts.js");
@@ -72,6 +73,7 @@ app.use("/posts", postRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/chat", chatRoutes);
 app.use("/admin", adminRoutes);
+app.use("/facebook", facebookDataDeletionRoutes);
 
 app.use("*", (req, res) => {
   res.status(404).json({ message: "Route not found" });
